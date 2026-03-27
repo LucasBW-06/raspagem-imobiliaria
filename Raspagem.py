@@ -6,7 +6,7 @@ import re
 from sqlalchemy import create_engine, select, MetaData, insert, text
 
 username = "root"
-password = "SENHA"
+password = "admin"
 host = "localhost"
 port = 3306
 database = "imobiliaria"
@@ -143,6 +143,33 @@ with engine.begin() as conexao:
                     value = int(float(num_str))
                     
                 dados[key] = value
+
+            dados["quantidade_suites"] = None
+            dados["quantidade_quartos"] = None
+            dados["quantidade_banheiros"] = None
+            dados["quantidade_vagas"] = None
+            dados["quantidade_cozinhas"] = None
+            dados["quantidade_churrasqueira"] = None
+            dados["quantidade_escritorio"] = None
+
+            for div in soup.find_all('div', class_='col-xs-6 col-sm-4'):
+                if not div.find('i').get('aria-hidden'):
+                    key = "".join(re.sub(r'[^a-zA-Zá-úÁ-Ú]', '', div.text))
+                    value = int("".join(re.findall(r'\d+', div.text)))
+                    if key == "Suítes":
+                        dados["quantidade_suites"] = value
+                    elif key == "Quartos":
+                        dados["quantidade_quartos"] = value
+                    elif key == "Banheiros":
+                        dados["quantidade_banheiros"] = value
+                    elif key == "Vagas":
+                        dados["quantidade_vagas"] = value
+                    elif key == "Cozinhas":
+                        dados["quantidade_cozinhas"] = value
+                    elif key == "Churrasqueiras":
+                        dados["quantidade_churrasqueira"] = value
+                    elif key == "Escritórios":
+                        dados["quantidade_escritorio"] = value
 
             conexao.execute(
                 insert(imovel),

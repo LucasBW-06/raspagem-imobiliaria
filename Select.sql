@@ -2,6 +2,13 @@ USE imobiliaria;
 
 SELECT 
     i.id,
+    i.quantidade_suites,
+    i.quantidade_quartos,
+    i.quantidade_banheiros,
+    i.quantidade_vagas,
+    i.quantidade_cozinhas,
+    i.quantidade_churrasqueira,
+    i.quantidade_escritorio,
     i.localizacao,
     i.area_total,
     i.area_construida,
