@@ -51,6 +51,8 @@ CREATE TABLE imoveis (
 	quantidade_cozinhas INT,
 	quantidade_churrasqueira INT,
 	quantidade_escritorio INT,
+    data_inserido DATE,
+    data_removido DATE,
     link VARCHAR(300)
 );
 

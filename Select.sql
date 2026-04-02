@@ -17,6 +17,8 @@ SELECT
     f.finalidade,
     t.tipo,
     u.utilizacao,
+    i.data_inserido,
+    i.data_removido,
     i.link
 FROM imoveis i
 LEFT JOIN modalidades m ON i.modalidade_id = m.id

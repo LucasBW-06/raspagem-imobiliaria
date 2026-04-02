@@ -2,8 +2,9 @@ import requests
 from bs4 import BeautifulSoup
 from time import sleep
 import re
+from datetime import datetime
 
-from sqlalchemy import create_engine, select, MetaData, insert, text
+from sqlalchemy import create_engine, select, MetaData, insert, update
 
 username = "root"
 password = "admin"
@@ -60,6 +61,21 @@ def get_or_create(valor, tabela, coluna):
         return result.inserted_primary_key[0]
 
 with engine.begin() as conexao:
+
+    imoveis = conexao.execute(
+        select(imovel.c.id, imovel.c.link).where(imovel.c.data_removido == None)
+    )
+    imoveis = imoveis.mappings().all()
+
+    for i in imoveis:
+        if i["link"] not in lista_links:
+            conexao.execute(
+                update(imovel)
+                .where(imovel.c.id == ["id"])
+                .values(data_removido = datetime.now)
+            )
+
+
     for link in lista_links:
         print("Visitando link: " + link)
         resultado = conexao.execute(
@@ -100,6 +116,7 @@ with engine.begin() as conexao:
             dados["finalidade_id"] = None
             dados["area_total"] = None
             dados["area_construida"] = None
+            dados["data_inserido"] = datetime.now()
 
             tabelas = {
                 "tipo": tipos,
@@ -176,3 +193,5 @@ with engine.begin() as conexao:
                 dados
             )
             sleep(2)
+    
+    conexao.commit()
