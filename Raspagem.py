@@ -71,8 +71,8 @@ with engine.begin() as conexao:
         if i["link"] not in lista_links:
             conexao.execute(
                 update(imovel)
-                .where(imovel.c.id == ["id"])
-                .values(data_removido = datetime.now)
+                .where(imovel.c.id == i["id"])
+                .values(data_removido = datetime.now())
             )
 
 
