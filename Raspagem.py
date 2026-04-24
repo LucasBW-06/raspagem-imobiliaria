@@ -28,11 +28,17 @@ utilizacao = metadata.tables["utilizacao"]
 lista_links = []
 percorrendo = True
 pag = 1
+
 while percorrendo:
     print(f"Percorrendo página {pag}...")
     url = f"https://imobiliariafleck.com.br/imoveis/?q=sinop&pagina={pag}&ordem=data"
-    response = requests.get(url, timeout=20)
+    headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                  }
+    response = requests.get(url, timeout=20, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
+
     if soup.find('div', class_='col-xs-12 alert alert-danger') == None:
         for div in soup.find_all('div', class_='property-item'):
             lista_links.append(div.find('a').get('href'))
@@ -77,14 +83,18 @@ with engine.begin() as conexao:
 
 
     for link in lista_links:
-        print("Visitando link: " + link)
         resultado = conexao.execute(
             select(imovel.c.id).where(imovel.c.link == link)
         )
         if resultado.fetchone():
             continue
         else:
-            response = requests.get(link, timeout=20)
+            print("Visitando link: " + link)
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                            }
+            response = requests.get(link, timeout=20, headers=headers)
             soup = BeautifulSoup(response.text, 'html.parser')
 
             dados = {}
