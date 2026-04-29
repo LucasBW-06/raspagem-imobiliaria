@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from time import sleep
 import re
+import unicodedata
 from datetime import datetime
 
 from sqlalchemy import create_engine, select, MetaData, insert, update
@@ -24,6 +25,7 @@ modalidades = metadata.tables["modalidades"]
 tipos = metadata.tables["tipos"]
 finalidades = metadata.tables["finalidades"]
 utilizacao = metadata.tables["utilizacao"]
+bairros = metadata.tables["bairros"]
 
 lista_links = []
 percorrendo = True
@@ -51,39 +53,88 @@ def get_or_create(valor, tabela, coluna):
     if valor is None:
         return None
 
-    with engine.begin() as conexao:
+    with engine.begin() as conn:
         
-        result = conexao.execute(
+        result = conn.execute(
             select(tabela.c.id).where(getattr(tabela.c, coluna) == valor)
         ).first()
 
         if result:
             return result[0]
 
-        result = conexao.execute(
+        result = conn.execute(
             insert(tabela).values({coluna: valor})
         )
 
         return result.inserted_primary_key[0]
+    
+def normalizar(texto):
+    texto = texto.upper()
+    texto = unicodedata.normalize('NFKD', texto)
+    texto = ''.join(c for c in texto if not unicodedata.combining(c))
+    return texto
 
-with engine.begin() as conexao:
+def extrair_bairro(endereco, lista_bairros):
+    texto = normalizar(endereco)
+    texto_split = texto.split()
 
-    imoveis = conexao.execute(
+    melhor_bairro = None
+    maior_score = 0
+    repeticoes = 0
+
+    for item in lista_bairros:
+        bairro_norm = normalizar(item['bairro'])
+
+        # quebra em palavras relevantes
+        palavras = re.sub(r'\b(SINOP|DE|DAS|DOS|DA|DO)\b', '', bairro_norm).strip().split()
+
+        # conta quantas palavras do bairro aparecem no endereço
+        score = 0
+        for p in palavras:
+            if p in texto_split:
+                score += 1
+
+        # bônus se o nome completo aparecer
+        if bairro_norm in texto:
+            score += 100
+
+        if score == maior_score and maior_score > 0:
+            repeticoes += 1
+
+        if score > maior_score:
+            maior_score = score
+            melhor_bairro = item['id']
+            repeticoes = 0
+
+    if maior_score < 100 and 'CENTRO' in texto_split:
+        melhor_bairro = 129
+
+    if maior_score > 0 and repeticoes == 0:
+        return melhor_bairro
+    else:
+        return None
+
+with engine.begin() as conn:
+
+    imoveis = conn.execute(
         select(imovel.c.id, imovel.c.link).where(imovel.c.data_removido == None)
     )
     imoveis = imoveis.mappings().all()
 
     for i in imoveis:
         if i["link"] not in lista_links:
-            conexao.execute(
+            conn.execute(
                 update(imovel)
                 .where(imovel.c.id == i["id"])
                 .values(data_removido = datetime.now())
             )
 
+    lista_bairros = conn.execute(
+    select(bairros.c.id, bairros.c.bairro))
+    lista_bairros = lista_bairros.mappings().all()
 
     for link in lista_links:
-        resultado = conexao.execute(
+        resultado = conn.execute(
             select(imovel.c.id).where(imovel.c.link == link)
         )
         if resultado.fetchone():
@@ -103,6 +154,9 @@ with engine.begin() as conexao:
             dados["localizacao"] = None
             if soup.find('span', class_='location'):
                 dados["localizacao"] = soup.find('span', class_='location').text
+
+            if dados["localizacao"] != None:
+                dados["bairro_id"] = extrair_bairro(dados["localizacao"], lista_bairros)
 
             mod, val = None, None
 
@@ -198,10 +252,12 @@ with engine.begin() as conexao:
                     elif key == "Escritórios":
                         dados["quantidade_escritorio"] = value
 
-            conexao.execute(
+            conn.execute(
                 insert(imovel),
                 dados
             )
             sleep(2)
     
-    conexao.commit()
+    conn.commit()
+
+    conn.close()

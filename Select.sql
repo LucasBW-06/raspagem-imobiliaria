@@ -19,9 +19,13 @@ SELECT
     u.utilizacao,
     i.data_inserido,
     i.data_removido,
-    i.link
+    i.link,
+    b.bairro
 FROM imoveis i
 LEFT JOIN modalidades m ON i.modalidade_id = m.id
 LEFT JOIN finalidades f ON i.finalidade_id = f.id
 LEFT JOIN tipos t ON i.tipo_id = t.id
-LEFT JOIN utilizacao u ON i.utilizacao_id = u.id;
+LEFT JOIN utilizacao u ON i.utilizacao_id = u.id
+LEFT JOIN bairros b ON i.bairro_id = b.id;
+
+SELECT * FROM bairros

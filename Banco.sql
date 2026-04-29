@@ -23,13 +23,19 @@ CREATE TABLE utilizacao (
     utilizacao VARCHAR(50) NOT NULL
 );
 
+CREATE TABLE bairros (
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    bairro VARCHAR(50) NOT NULL
+);
+
 CREATE TABLE imoveis (
 	id INT PRIMARY KEY AUTO_INCREMENT,
     descricao VARCHAR(3000),
     cidade VARCHAR(50),
     localizacao VARCHAR(300),
     rua VARCHAR(250),
-    bairro VARCHAR(150),
+    bairro_id INT,
+    FOREIGN KEY (bairro_id) REFERENCES bairros(id),
     cep VARCHAR(8),
     numero VARCHAR(8),
     area_total INT,
