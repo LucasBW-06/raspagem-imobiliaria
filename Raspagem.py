@@ -85,16 +85,13 @@ def extrair_bairro(endereco, lista_bairros):
     for item in lista_bairros:
         bairro_norm = normalizar(item['bairro'])
 
-        # quebra em palavras relevantes
         palavras = re.sub(r'\b(SINOP|DE|DAS|DOS|DA|DO)\b', '', bairro_norm).strip().split()
 
-        # conta quantas palavras do bairro aparecem no endereço
         score = 0
         for p in palavras:
             if p in texto_split:
                 score += 1
 
-        # bônus se o nome completo aparecer
         if bairro_norm in texto:
             score += 100
 

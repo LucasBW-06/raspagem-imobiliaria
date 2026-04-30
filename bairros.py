@@ -20,8 +20,12 @@ lista = []
 with engine.begin() as conn:
     with open("lista_bairros.txt", "r", encoding="utf-8") as f:
         for linha in f:
-            dados = {'bairro': linha.replace('\n', '')}
-            conn.execute(
-                insert(bairros),
-                dados
-            )
+            result = conn.execute(
+                select(bairros.c.id).where(bairros.c.bairro == linha.replace('\n', ''))
+            ).first()
+            if not result:
+                dados = {'bairro': linha.replace('\n', '')}
+                conn.execute(
+                    insert(bairros),
+                    dados
+                )

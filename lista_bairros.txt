@@ -121,6 +121,8 @@ Residencial Jardim Araguaia
 Residencial Jequitibás
 Residencial José Adriano Leitão
 Residencial Kaiabi
+Residencial Moriá
+Residencial Nossa Senhora Aparecida
 Residencial Parque do Lago
 Residencial Pienza
 Residencial Portal da Mata
@@ -128,4 +130,5 @@ Residencial Recanto dos Canários
 Residencial Recanto Suiço Sinop
 Setor Comercial
 Setor Industrial
+Setor Residencial Norte
 Zona Rural

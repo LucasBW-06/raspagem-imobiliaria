@@ -1,6 +1,6 @@
 import re
 import unicodedata
-from sqlalchemy import create_engine, select, MetaData, insert, update
+from sqlalchemy import create_engine, select, MetaData, update
 
 username = "root"
 password = "admin"
@@ -55,9 +55,10 @@ def extrair_bairro(endereco, lista_bairros):
             maior_score = score
             melhor_bairro = item['id']
             repeticoes = 0
-
+    
     if maior_score < 100 and 'CENTRO' in texto_split:
         melhor_bairro = 129
+        maior_score = 100
 
     if maior_score > 0 and repeticoes == 0:
         return melhor_bairro
