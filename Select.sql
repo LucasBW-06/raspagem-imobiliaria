@@ -29,3 +29,6 @@ LEFT JOIN utilizacao u ON i.utilizacao_id = u.id
 LEFT JOIN bairros b ON i.bairro_id = b.id;
 
 SELECT * FROM bairros
+
+SELECT * FROM imoveis
+LEFT JOIN 
