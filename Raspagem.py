@@ -154,6 +154,8 @@ with engine.begin() as conn:
 
             if dados["localizacao"] != None:
                 dados["bairro_id"] = extrair_bairro(dados["localizacao"], lista_bairros)
+            else:
+                dados["bairro_id"] = extrair_bairro(soup.find('h4', class_='detail-title').text, lista_bairros)
 
             mod, val = None, None
 

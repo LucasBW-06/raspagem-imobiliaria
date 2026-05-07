@@ -1,5 +1,7 @@
 import re
 import unicodedata
+import requests
+from bs4 import BeautifulSoup
 from sqlalchemy import create_engine, select, MetaData, update
 
 username = "root"
@@ -65,25 +67,42 @@ def extrair_bairro(endereco, lista_bairros):
     else:
         return None
 
+def buscar_titulo(url):
+    headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                  }
+    response = requests.get(url, timeout=20, headers=headers)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    return soup.find('h4', class_='detail-title').text
+
 with engine.begin() as conn:
 
-    enderecos = conn.execute(
-        select(imovel.c.id, imovel.c.localizacao).where(imovel.c.localizacao != None, imovel.c.bairro_id == None)
+    imoveis = conn.execute(
+        select(imovel.c.id, imovel.c.localizacao, imovel.c.link).where(imovel.c.bairro_id == None)
     )
-    enderecos = enderecos.mappings().all()
+    imoveis = imoveis.mappings().all()
 
     lista = conn.execute(
             select(bairros.c.id, bairros.c.bairro))
     lista = lista.mappings().all()
 
-    for i in enderecos:
-        bairro = extrair_bairro(i["localizacao"], lista)
+    for i in imoveis:
+        bairro = ''
+        if i["localizacao"] == None:
+            titulo = buscar_titulo(i["link"])
+            bairro = extrair_bairro(titulo, lista)
+        else:
+            bairro = extrair_bairro(i["localizacao"], lista)
+        
         if bairro != None:
-            conn.execute(
-                    update(imovel)
-                    .where(imovel.c.id == i["id"])
-                    .values(bairro_id = bairro)
-                )
-
+                conn.execute(
+                        update(imovel)
+                        .where(imovel.c.id == i["id"])
+                        .values(bairro_id = bairro)
+                    )
     conn.commit()
     conn.close()
+
+print("Concluido")
